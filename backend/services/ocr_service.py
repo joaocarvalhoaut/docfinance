@@ -1,9 +1,12 @@
 ﻿import re
 import logging
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 from pathlib import Path
 from PIL import Image, ImageFilter, ImageEnhance
+from config import settings
+
+if settings.TESSERACT_CMD:
+    pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_CMD
 
 logger = logging.getLogger(__name__)
 
