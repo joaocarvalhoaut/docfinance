@@ -54,8 +54,7 @@ async def _do_process(job_id: str, file_path: str, spreadsheet_config: dict):
                         google_token_json=spreadsheet_config["token"],
                         spreadsheet_id=spreadsheet_config["sheet_id"],
                         data=result,
-                        doc_type=result["doc_type"],
-                        sheet_name=spreadsheet_config.get("sheet_name", "Planilha1")
+                        doc_type=result["doc_type"]
                     )
                     sheet_result = "ok" if success else "erro"
                 except Exception as e:
@@ -283,9 +282,17 @@ async def export_to_sheets(
 
     # Criar planilha nova se nao foi informada
     if not spreadsheet_id:
-        spreadsheet_id = create_spreadsheet(f"DocFinance - {job.filename or job_id}")
+        spreadsheet_id = create_spreadsheet(
+            title=f"DocFinance - {job.filename or job_id}",
+            google_token_json=current_user.google_token
+        )
 
-    ok = write_to_google_sheets(spreadsheet_id, extracted, job.doc_type or "desconhecido")
+    ok = write_to_google_sheets(
+        spreadsheet_id=spreadsheet_id,
+        data=extracted,
+        doc_type=job.doc_type or "desconhecido",
+        google_token_json=current_user.google_token
+    )
     if not ok:
         raise HTTPException(500, "Erro ao escrever no Google Sheets")
 
@@ -299,4 +306,4 @@ async def export_to_sheets(
 @router.get("/sheets/list")
 async def list_sheets(current_user: User = Depends(get_current_user)):
     from services.sheets_service import list_spreadsheets
-    return list_spreadsheets()
+    return list_spreadsheets(current_user.google_token)
