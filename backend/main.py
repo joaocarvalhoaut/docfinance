@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="DocFinance API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"])
@@ -33,7 +33,7 @@ app.add_middleware(CORSMiddleware,
 app.include_router(auth.router)
 app.include_router(documents.router)
 
-# Servir frontend
+# O backend pode subir sozinho no Railway mesmo sem o frontend no contexto.
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if not os.path.exists(frontend_dir):
     frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
