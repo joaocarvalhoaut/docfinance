@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["tesseract", "poppler_utils", "python311", "which"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"

@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  docfinance:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/uploads:/app/backend/uploads
+      - ./data/db:/app/backend
+      - ./.env:/app/backend/.env:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

@@ -1,0 +1,492 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocFinance — Extrator de Documentos</title>
+<style>
+:root{--bg:#f8f9fa;--card:#fff;--border:#e2e8f0;--primary:#4f46e5;--pd:#4338ca;
+--ok:#10b981;--err:#ef4444;--text:#1e293b;--muted:#64748b;--r:12px;
+--sh:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+nav{background:var(--primary);color:#fff;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-size:1.2rem;font-weight:700}
+.nav-r{display:flex;align-items:center;gap:1rem}
+.nav-user{font-size:.85rem;opacity:.85}
+.nbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .9rem;border-radius:8px;cursor:pointer;font-size:.85rem}
+.nbtn:hover{background:rgba(255,255,255,.25)}
+main{max-width:800px;margin:0 auto;padding:2rem 1rem}
+#auth{display:flex;justify-content:center;align-items:center;min-height:88vh}
+.acard{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:2.5rem;width:100%;max-width:400px}
+.acard h2{font-size:1.5rem;margin-bottom:.4rem}
+.acard>p{color:var(--muted);font-size:.88rem;margin-bottom:1.5rem}
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:1.5rem}
+.tab{padding:.55rem 1rem;cursor:pointer;font-size:.9rem;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab.on{color:var(--primary);border-color:var(--primary);font-weight:600}
+.fg{margin-bottom:.9rem}
+label{display:block;font-size:.83rem;font-weight:500;margin-bottom:.35rem}
+input{width:100%;padding:.58rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-size:.93rem;color:var(--text);background:var(--bg);transition:border .15s;outline:none}
+input:focus{border-color:var(--primary);background:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.62rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:500;border:none;transition:all .15s}
+.btn-p{background:var(--primary);color:#fff;width:100%}.btn-p:hover{background:var(--pd)}
+.btn-ok{background:var(--ok);color:#fff}.btn-ok:hover{filter:brightness(.9)}
+.btn-sm{padding:.38rem .8rem;font-size:.82rem}
+.div{text-align:center;color:var(--muted);font-size:.82rem;margin:.9rem 0;position:relative}
+.div::before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
+.div span{background:var(--card);padding:0 .7rem;position:relative}
+#app{display:none}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:1.75rem;margin-bottom:1.25rem}
+.stitle{font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--text)}
+.dz{border:2px dashed var(--border);border-radius:10px;padding:2rem 1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.dz:hover,.dz.over{border-color:var(--primary);background:#f0efff}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz h3{font-size:.95rem;font-weight:600;margin-bottom:.2rem}
+.dz p{color:var(--muted);font-size:.82rem;margin-top:.3rem}
+.flist{margin-top:.75rem;display:flex;flex-direction:column;gap:.4rem}
+.fi{display:flex;align-items:center;gap:.6rem;background:var(--bg);padding:.55rem .85rem;border-radius:8px;font-size:.86rem}
+.fi .fn{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi .fs{color:var(--muted);font-size:.78rem;white-space:nowrap}
+.rx{background:none;border:none;cursor:pointer;color:var(--muted);padding:.1rem .3rem;border-radius:4px;font-size:1rem}
+.rx:hover{color:var(--err);background:#fee2e2}
+.xl-zone{border:2px dashed var(--border);border-radius:10px;padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.xl-zone:hover{border-color:var(--ok);background:#f0fdf4}
+.xl-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.xl-zone.selected{border-color:var(--ok);background:#f0fdf4}
+.xl-info{margin-top:.6rem;display:flex;align-items:center;gap:.5rem;font-size:.86rem;color:var(--ok);font-weight:500}
+.al{padding:.7rem .95rem;border-radius:8px;font-size:.87rem;margin-bottom:.85rem}
+.al-err{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.al-ok{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+.al-info{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.proc-btn{background:var(--primary);color:#fff;width:100%;padding:.8rem;border-radius:10px;border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s}
+.proc-btn:hover{background:var(--pd)}
+.proc-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.result-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:1.75rem;margin-bottom:1.25rem;border-left:4px solid var(--ok)}
+.result-title{font-size:1rem;font-weight:600;color:var(--ok);margin-bottom:1rem}
+.doc-bloco{border:1px solid var(--border);border-radius:8px;padding:.85rem;margin-bottom:.65rem}
+.doc-titulo{font-size:.85rem;font-weight:600;color:var(--primary);margin-bottom:.5rem}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.4rem}
+.fi2{background:var(--bg);padding:.45rem .7rem;border-radius:8px}
+.fl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.15rem}
+.fv{font-size:.85rem;font-weight:500;word-break:break-all}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .75s linear infinite;vertical-align:middle}
+.progress{background:var(--border);border-radius:4px;height:8px;margin:.5rem 0;overflow:hidden}
+.progress-bar{height:100%;background:var(--primary);border-radius:4px;transition:width .3s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.download-btn{background:var(--ok);color:#fff;width:100%;padding:.75rem;border-radius:10px;border:none;font-size:1rem;font-weight:600;cursor:pointer;margin-top:1rem;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.download-btn:hover{filter:brightness(.9)}
+.badge{padding:.22rem .55rem;border-radius:20px;font-size:.73rem;font-weight:600}
+.b-type{background:#ede9fe;color:#5b21b6}
+.b-done{background:#d1fae5;color:#065f46}
+.conf-bar{height:4px;background:var(--border);border-radius:2px;margin:.4rem 0}
+.conf-fill{height:100%;border-radius:2px}
+@media(max-width:600px){main{padding:1rem .75rem}.fgrid{grid-template-columns:1fr 1fr}nav{padding:0 1rem}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">DocFinance</div>
+  <div class="nav-r">
+    <span class="nav-user" id="nav-user"></span>
+    <button class="nbtn" id="logout-btn" onclick="logout()" style="display:none">Sair</button>
+  </div>
+</nav>
+
+<!-- AUTH -->
+<div id="auth">
+  <div class="acard">
+    <h2>DocFinance</h2>
+    <p>Extracao automatica de dados de documentos financeiros</p>
+    <div class="tabs">
+      <div class="tab on" onclick="switchTab('login')">Entrar</div>
+      <div class="tab" onclick="switchTab('register')">Criar conta</div>
+    </div>
+    <div id="auth-alert"></div>
+    <div id="login-f">
+      <div class="fg"><label>Email</label>
+        <input type="email" id="le" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="fg"><label>Senha</label>
+        <input type="password" id="lp" placeholder="......" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-p" onclick="doLogin()">Entrar</button>
+    </div>
+    <div id="reg-f" style="display:none">
+      <div class="fg"><label>Nome</label><input type="text" id="rn" placeholder="Seu nome"></div>
+      <div class="fg"><label>Email</label><input type="email" id="re" placeholder="seu@email.com"></div>
+      <div class="fg"><label>Senha (min. 6 caracteres)</label><input type="password" id="rp" placeholder="......"></div>
+      <button class="btn btn-p" onclick="doRegister()">Criar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<main>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <div class="stitle">1. Enviar documentos</div>
+    <div class="dz" id="dz"
+      ondragover="event.preventDefault();this.classList.add('over')"
+      ondragleave="this.classList.remove('over')"
+      ondrop="onDrop(event)">
+      <input type="file" id="fi" multiple accept=".jpg,.jpeg,.png,.pdf" onchange="onFiles(this.files)">
+      <h3>Arraste os arquivos ou clique para selecionar</h3>
+      <p>Suporta JPG, PNG e PDF — maximo 20MB por arquivo</p>
+    </div>
+    <div class="flist" id="flist"></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <div class="stitle">2. Enviar planilha Excel</div>
+    <div class="xl-zone" id="xl-zone">
+      <input type="file" id="xl-input" accept=".xlsx" onchange="onXlFile(this.files[0])">
+      <h3>Clique para selecionar a planilha</h3>
+      <p>Arquivo .xlsx que sera preenchido com os dados extraidos</p>
+      <p style="margin-top:.5rem;color:var(--muted);font-size:.78rem">Deixe vazio para criar uma planilha nova automaticamente</p>
+    </div>
+    <div id="xl-info" style="display:none" class="xl-info">
+      <span>Planilha selecionada:</span>
+      <span id="xl-name" style="font-weight:600"></span>
+      <button onclick="clearXl()" style="background:none;border:none;cursor:pointer;color:var(--err);font-size:.85rem">Remover</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card">
+    <div class="stitle">3. Processar e preencher planilha</div>
+    <div id="proc-alert"></div>
+    <button class="proc-btn" onclick="processar()" id="proc-btn">
+      Processar e preencher planilha
+    </button>
+  </div>
+
+  <!-- RESULTADO -->
+  <div id="resultado" style="display:none"></div>
+
+  <!-- HISTORICO -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+      <div class="stitle" style="margin:0">Historico</div>
+      <button class="btn btn-sm" style="border:1.5px solid var(--border);background:transparent" onclick="loadHist()">Atualizar</button>
+    </div>
+    <div id="hist"><div style="text-align:center;padding:2rem;color:var(--muted)">Nenhum documento processado ainda</div></div>
+  </div>
+
+</main>
+</div>
+
+<script>
+const API="";
+let tok=localStorage.getItem("df_tok");
+let uname=localStorage.getItem("df_name");
+let pfiles=[];
+let xlFile=null;
+let activeJobs={};
+
+const TYPES={
+  cheque:"Cheque",nota_fiscal:"Nota Fiscal",
+  comprovante_pix:"PIX",comprovante_ted:"TED",
+  comprovante:"Comprovante",boleto:"Boleto",
+  recibo:"Recibo",desconhecido:"Desconhecido",erro:"Erro"
+};
+
+window.onload=()=>{
+  const p=new URLSearchParams(location.search);
+  if(p.get("token")){
+    tok=p.get("token");uname=decodeURIComponent(p.get("name")||"Usuario");
+    localStorage.setItem("df_tok",tok);localStorage.setItem("df_name",uname);
+    history.replaceState({},"","/");
+  }
+  if(tok) showApp();
+};
+
+function showApp(){
+  document.getElementById("auth").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("nav-user").textContent=uname||"";
+  document.getElementById("logout-btn").style.display="block";
+  loadHist();
+}
+
+function logout(){
+  tok=null;uname=null;
+  localStorage.removeItem("df_tok");localStorage.removeItem("df_name");
+  document.getElementById("auth").style.display="flex";
+  document.getElementById("app").style.display="none";
+  document.getElementById("logout-btn").style.display="none";
+}
+
+function switchTab(t){
+  document.querySelectorAll(".tab").forEach((el,i)=>el.classList.toggle("on",(i===0)===(t==="login")));
+  document.getElementById("login-f").style.display=t==="login"?"block":"none";
+  document.getElementById("reg-f").style.display=t==="register"?"block":"none";
+  document.getElementById("auth-alert").innerHTML="";
+}
+
+async function doLogin(){
+  const email=document.getElementById("le").value.trim();
+  const pw=document.getElementById("lp").value;
+  if(!email||!pw)return aalert("Preencha email e senha");
+  try{
+    const fd=new FormData();fd.append("username",email);fd.append("password",pw);
+    const r=await fetch(API+"/auth/token",{method:"POST",body:fd});
+    const d=await r.json();
+    if(!r.ok)return aalert(d.detail||"Email ou senha incorretos");
+    tok=d.access_token;uname=d.user_name;
+    localStorage.setItem("df_tok",tok);localStorage.setItem("df_name",uname);
+    showApp();
+  }catch{aalert("Erro de conexao com o servidor");}
+}
+
+async function doRegister(){
+  const name=document.getElementById("rn").value.trim();
+  const email=document.getElementById("re").value.trim();
+  const pw=document.getElementById("rp").value;
+  if(!name||!email||!pw)return aalert("Preencha todos os campos");
+  if(pw.length<6)return aalert("Senha deve ter ao menos 6 caracteres");
+  try{
+    const r=await fetch(API+"/auth/register",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name,email,password:pw})});
+    const d=await r.json();
+    if(!r.ok)return aalert(d.detail||"Erro ao criar conta");
+    tok=d.access_token;uname=d.user_name;
+    localStorage.setItem("df_tok",tok);localStorage.setItem("df_name",uname);
+    showApp();
+  }catch{aalert("Erro de conexao");}
+}
+
+function aalert(msg){
+  document.getElementById("auth-alert").innerHTML=
+    "<div class=\"al al-err\">"+msg+"</div>";
+}
+
+function onFiles(files){
+  for(const f of files){
+    if(!["image/jpeg","image/png","application/pdf"].includes(f.type))continue;
+    if(pfiles.find(x=>x.name===f.name&&x.size===f.size))continue;
+    if(f.size>20*1024*1024){palert(f.name+" excede 20MB","err");continue;}
+    pfiles.push(f);
+  }
+  renderFiles();
+}
+
+function onDrop(e){
+  e.preventDefault();
+  document.getElementById("dz").classList.remove("over");
+  onFiles(e.dataTransfer.files);
+}
+
+function renderFiles(){
+  const el=document.getElementById("flist");
+  if(!pfiles.length){el.innerHTML="";return;}
+  el.innerHTML=pfiles.map((f,i)=>`
+    <div class="fi">
+      <span>${f.type.includes("pdf")?"PDF":"IMG"}</span>
+      <span class="fn">${esc(f.name)}</span>
+      <span class="fs">${(f.size/1024/1024).toFixed(2)} MB</span>
+      <button class="rx" onclick="rmFile(${i})">X</button>
+    </div>`).join("");
+}
+
+function rmFile(i){pfiles.splice(i,1);renderFiles();}
+
+function onXlFile(f){
+  if(!f)return;
+  xlFile=f;
+  document.getElementById("xl-zone").classList.add("selected");
+  document.getElementById("xl-info").style.display="flex";
+  document.getElementById("xl-name").textContent=f.name;
+}
+
+function clearXl(){
+  xlFile=null;
+  document.getElementById("xl-input").value="";
+  document.getElementById("xl-zone").classList.remove("selected");
+  document.getElementById("xl-info").style.display="none";
+}
+
+async function processar(){
+  if(!pfiles.length)return palert("Selecione ao menos um documento","err");
+  palert("","");
+  document.getElementById("resultado").style.display="none";
+  document.getElementById("proc-btn").disabled=true;
+  document.getElementById("proc-btn").textContent="Processando...";
+
+  const resultados=[];
+  for(const f of pfiles){
+    const r=await uploadDoc(f);
+    if(r) resultados.push(r);
+  }
+
+  document.getElementById("proc-btn").disabled=false;
+  document.getElementById("proc-btn").textContent="Processar e preencher planilha";
+
+  if(resultados.length>0){
+    mostrarResultados(resultados);
+  }
+}
+
+async function uploadDoc(file){
+  const fd=new FormData();
+  fd.append("file",file);
+  fd.append("sheet_type","none");
+  try{
+    const r=await fetch(API+"/documents/upload",
+      {method:"POST",headers:{Authorization:"Bearer "+tok},body:fd});
+    const d=await r.json();
+    if(!r.ok){palert(d.detail||"Erro ao enviar "+file.name,"err");return null;}
+    return await aguardarJob(d.job_id, file.name);
+  }catch(e){
+    palert("Erro: "+e.message,"err");
+    return null;
+  }
+}
+
+async function aguardarJob(jobId, filename){
+  for(let i=0;i<60;i++){
+    await new Promise(r=>setTimeout(r,2000));
+    try{
+      const r=await fetch(API+"/documents/status/"+jobId,
+        {headers:{Authorization:"Bearer "+tok}});
+      const d=await r.json();
+      if(d.status==="concluido"||d.status==="erro"){
+        loadHist();
+        return {jobId, filename, data:d};
+      }
+    }catch{}
+  }
+  return null;
+}
+
+function mostrarResultados(resultados){
+  const el=document.getElementById("resultado");
+  el.style.display="block";
+
+  const jobsConcluidos=resultados.filter(r=>r&&r.data.status==="concluido");
+
+  let html="<div class=\"result-card\">";
+  html+="<div class=\"result-title\">Extracao concluida — "+jobsConcluidos.length+" de "+resultados.length+" documentos processados</div>";
+
+  for(const res of resultados){
+    if(!res)continue;
+    const d=res.data;
+    const exdata=d.extracted_data||{};
+    const docs=exdata.documentos||[];
+    const total=exdata.total_documentos||0;
+    const conf=d.confidence||0;
+    const pct=Math.round(conf*100);
+    const cc=conf>.7?"#10b981":conf>.4?"#f59e0b":"#ef4444";
+
+    html+="<div class=\"doc-bloco\" style=\"margin-bottom:1rem;border-color:var(--primary)\">";
+    html+="<div class=\"doc-titulo\">"+esc(res.filename)+" — "+(TYPES[d.doc_type]||d.doc_type);
+    if(total>1) html+=" ("+total+" documentos detectados)";
+    html+="</div>";
+    html+="<div style=\"font-size:.78rem;color:var(--muted);margin-bottom:.5rem\">Confianca OCR: "+pct+"%";
+    html+="<div class=\"conf-bar\"><div class=\"conf-fill\" style=\"width:"+pct+"%;background:"+cc+"\"></div></div></div>";
+
+    if(d.status==="erro"){
+      html+="<div class=\"al al-err\">"+esc(d.error||"Erro ao processar")+"</div>";
+    } else if(docs.length>0){
+      docs.forEach(function(doc){
+        const fhtml=Object.entries(doc.fields||{}).map(function(kv){
+          return "<div class=\"fi2\"><div class=\"fl\">"+kv[0].replace(/_/g," ")+"</div><div class=\"fv\">"+esc(String(kv[1]))+"</div></div>";
+        }).join("");
+        html+="<div style=\"margin-bottom:.5rem\">";
+        if(total>1) html+="<div style=\"font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:.3rem\">"+(TYPES[doc.doc_type]||doc.doc_type)+" - Doc "+doc.indice+"</div>";
+        html+="<div class=\"fgrid\">"+fhtml+"</div></div>";
+      });
+    }
+    html+="</div>";
+  }
+
+  // Botao de download Excel
+  if(jobsConcluidos.length>0){
+    const primeiroJobId=jobsConcluidos[0].jobId;
+    html+="<button class=\"download-btn\" onclick=\"baixarExcel('"+primeiroJobId+"')\">Excel (.xlsx)</button>";
+  html+="<button class=\"download-btn\" style=\"background:#10b981;margin-top:.5rem\" onclick=\"enviarSheets('"+primeiroJobId+"')\">Google Sheets</button>";
+  }
+
+  html+="</div>";
+  el.innerHTML=html;
+  el.scrollIntoView({behavior:"smooth"});
+}
+
+async function enviarSheets(jobId){
+  const btn = event.target;
+  const sheetId = prompt("Cole o ID da planilha Google Sheets:\n(deixe vazio para criar nova automaticamente)","1uOEQIf2mJr1kH7lFkOqo0NM1x5EVJ-uwqAuRwPiwNYE");
+  if(sheetId === null) return;
+  let sucesso=false;
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+  try{
+    const url = API+"/documents/export-sheets/"+jobId+(sheetId?"?spreadsheet_id="+encodeURIComponent(sheetId):"");
+    const r = await fetch(url,{method:"POST",headers:{Authorization:"Bearer "+tok}});
+    const d = await r.json();
+    if(!r.ok){palert("Erro: "+(d.detail||"Falha"),"err");return;}
+    sucesso=true;
+    btn.textContent="Enviado!";
+    palert("Enviado! <a href=\""+d.url+"\" target=\"_blank\" style=\"color:#065f46;font-weight:600\">Abrir Google Sheets</a>","ok");
+  }catch(e){palert("Erro: "+e.message,"err");}
+  finally{btn.disabled=false;btn.textContent="Google Sheets";}
+}
+
+async function baixarExcel(jobId){
+  const fd=new FormData();
+  if(xlFile) fd.append("file",xlFile);
+  try{
+    const r=await fetch(API+"/documents/export-excel/"+jobId,
+      {method:"POST",headers:{Authorization:"Bearer "+tok},body:fd});
+    if(!r.ok){palert("Erro ao gerar planilha","err");return;}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="docfinance_resultado.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
+  }catch(e){palert("Erro: "+e.message,"err");}
+}
+
+async function loadHist(){
+  try{
+    const r=await fetch(API+"/documents/history",
+      {headers:{Authorization:"Bearer "+tok}});
+    if(!r.ok)return;
+    const list=await r.json();
+    const c=document.getElementById("hist");
+    if(!list.length){
+      c.innerHTML="<div style=\"text-align:center;padding:2rem;color:var(--muted)\">Nenhum documento ainda</div>";
+      return;
+    }
+    c.innerHTML=list.map(j=>`
+      <div style="display:flex;align-items:center;gap:.65rem;padding:.65rem .85rem;border:1px solid var(--border);border-radius:8px;margin-bottom:.4rem;cursor:pointer" onclick="verDetalhe('${j.job_id}')">
+        <span style="flex:1;font-size:.88rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(j.filename||"")}</span>
+        <span class="badge b-type">${TYPES[j.doc_type]||j.doc_type||""}</span>
+        <span class="badge ${j.status==="concluido"?"b-done":"al-err"}">${j.status}</span>
+        ${j.confidence?"<span style=\"font-size:.75rem;color:var(--muted)\">"+Math.round(j.confidence*100)+"%</span>":""}
+        <span style="font-size:.73rem;color:var(--muted)">${(j.created_at||"").slice(0,16)}</span>
+      </div>`).join("");
+  }catch{}
+}
+
+async function verDetalhe(jobId){
+  const r=await fetch(API+"/documents/status/"+jobId,
+    {headers:{Authorization:"Bearer "+tok}});
+  const d=await r.json();
+  mostrarResultados([{jobId, filename:d.filename, data:d}]);
+}
+
+function palert(msg,type){
+  document.getElementById("proc-alert").innerHTML=
+    msg?"<div class=\"al al-"+(type==="err"?"err":"ok")+"\">"+msg+"</div>":"";
+}
+
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>
